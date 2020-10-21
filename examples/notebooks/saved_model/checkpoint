@@ -1,0 +1,2 @@
+model_checkpoint_path: "mnist_dense"
+all_model_checkpoint_paths: "mnist_dense"
