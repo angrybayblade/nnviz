@@ -2,12 +2,12 @@ from flask import Flask,request
 from json import loads,dumps
 
 import numpy as np
+import config as cgf
 
 
 app = Flask(__name__)
-inputValues = {
-    'input':X[0:1]
-}
+
+print (cgf.model.predict(cgf.inputs[0]['input']))
 
 def setLevels(network,inputNodes,currentLevel=0):
     for node in inputNodes:
@@ -64,10 +64,14 @@ def setOutput(model,network:dict,levels:list):
 def index():
     return "Hello"
 
+@app.route("/inputs",methods=['GET','POST'])
+def get_inputs():
+    pass
 
 @app.route("/predict")
 def predict():
     return "predicted"
 
 if __name__ == "__main__":
-    app.run(host="localhost",port="8081")
+    # app.run(host="localhost",port="8081")
+    pass

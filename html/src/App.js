@@ -1,7 +1,7 @@
 import React from 'react';
 import "./App.css"
 
-import {output as data} from './sample';
+import {output} from './sample';
 
 var a;
 
@@ -20,69 +20,123 @@ function App() {
       ctx.stroke();
     }
   }
- 
-  React.useEffect(()=>{
-    let canvasMargin = 30;
-    let canvasPadding = 20;
 
+  let [ctx,ctxState] = React.useState({
+    ctx:undefined,
+    canvas:undefined
+  })
+
+  let [data,dataState] = React.useState({})
+
+  let [config,configState] = React.useState({
+    canvas:{
+      margin:30,
+      padding:20,
+      width:0,
+      height:0
+    },
+    neuron:{
+      radius:3,
+      max:0,
+      x:0,
+      y:0,
+      margin:8
+    },
+    level:{
+      height:0,
+      width:0,
+      x:0,
+      y:0,
+      padding:8,
+      margin:48
+    },
+    layer:{
+      x:0,
+      y:0,
+      width:0
+    }
+  })
+  
+  function setupCanvas(data){
     let canvas = document.getElementById("graph");
- 
     let ctx = canvas.getContext("2d");
-    
-    let maxNeurons = Math.max(...data.levels.map((level,_)=>{
+
+    config.neuron.max = Math.max(...data.levels.map((level,_)=>{
           return level.reduce((a,b) => a + data.network[b].outputs.length, 0);
     }))
-    let neuronRadius = 3;
-    
-    let levelHeight,levelWidth,levelX,levelY,nNeruons,levelPadding= 8 ,levelMargin= 48;
-    let layerX,layerY,layerWidth;
-    let neuronX,neuronY,arc = Math.PI * 2, neuronMargin = 8;
 
-    levelHeight =   2 * ( neuronRadius + levelPadding);
+    config.level.height =   2 * ( config.neuron.radius + config.level.padding);
 
-    let canvasWidth = Math.max(
+    config.canvas.width = Math.max(
       ( window.innerWidth - 5 ),
-      (maxNeurons * 2 * neuronRadius ) + ((maxNeurons + 1)*neuronMargin) + ( 3 * canvasPadding ) 
+      (config.neuron.max * 2 * config.neuron.radius ) + 
+      ((config.neuron.max + 1)*config.neuron.margin) + 
+      ( 3 * config.canvas.padding ) 
     );
-    let canvasHeight = Math.max(
+
+    config.canvas.height = Math.max(
       ( window.innerHeight - 5 ), 
-      ( data.levels.length * (levelHeight + levelMargin) )
+      ( data.levels.length * ( config.level.height + config.level.margin) )
     );
 
-    canvas.width = canvasWidth;
-    canvas.height = canvasHeight;
-    canvas.style.overflow = "hidden";    
+    canvas.width = config.canvas.width;
+    canvas.height = config.canvas.height;
+    canvas.style.overflow = "hidden";  
 
+    ctxState({
+      ctx:ctx,
+      canvas:canvas
+    })
+    configState({
+      ...config
+    })
+  }
+
+  function drawNetwork(data=output){
+    let ctx = document.getElementById("graph").getContext("2d");;
     data.levels.map((level,i)=>{
-      nNeruons = level.reduce((a,b) => a + data.network[b].outputs.length, 0);  
-      levelWidth = (nNeruons * 2 * neuronRadius ) + ((nNeruons + 1)*neuronMargin) + levelPadding;
-      layerWidth = Math.floor(levelWidth/level.length)
+      let n = level.reduce((a,b) => a + data.network[b].outputs.length, 0);  
+      let levelWidth = (n * 2 * config.neuron.radius ) + ((n + 1)*config.neuron.margin) + config.level.padding;
+      let layerWidth = Math.floor(levelWidth/level.length)
 
       level.map((layer,j)=>{
-        layerX = Math.floor( (canvasWidth/2) - (levelWidth/2) + (j*layerWidth) - (levelHeight*(level.length-1)) + (levelHeight*2*(j)));
-        layerY = canvasPadding + ( i * ( levelHeight +  ( 2 * levelMargin ) ) );
+        let layerX = Math.floor(
+          (config.canvas.width/2) - 
+          (levelWidth/2) + 
+          (j*layerWidth) - 
+          (config.level.height*(level.length-1)) + 
+          (config.level.height*2*(j))
+        );
+
+        let layerY = config.canvas.padding + ( i * ( config.level.height +  ( 2 * config.level.margin )))
+
         draw.Rect({
           x:layerX,
           y:layerY,
-          h:levelHeight,
+          h:config.level.height,
           w:layerWidth
         },ctx)
 
         data.network[layer].outputs.map((neuron,k)=>{
-          neuronY = layerY + neuronRadius + levelPadding;
-          neuronX = layerX + neuronRadius + (k*((neuronRadius*2)+neuronMargin)) + levelPadding
+          let neuronY = layerY + config.neuron.radius + config.level.padding;
+          let neuronX = layerX + config.neuron.radius + (k*((config.neuron.radius*2)+config.neuron.margin)) + config.level.padding
 
           draw.Circle({
             x:neuronX,
             y:neuronY,
-            r:neuronRadius,
+            r:config.neuron.radius,
             c:`rgba(0,0,0,${neuron+0.1})`
           },ctx)
         })
 
       })
     })
-  },[draw,])
+  }
+  
+  React.useEffect(()=>{
+    setupCanvas(output)
+    drawNetwork(output)
+  },[])
 
   return (
       <canvas id="graph" style={{background:"#e0e0e0",overflow:"scroll",}}>
