@@ -1,22 +1,39 @@
 from flask import Flask,request
+from flask_cors import CORS
 from json import loads,dumps
 
+import io
 import numpy as np
-import config as cgf
+import cv2
+import base64
+import matplotlib.pyplot as plt
+import config as cfg
 
 
 app = Flask(__name__)
+CORS(app=app)
 
-print (cgf.model.predict(cgf.inputs[0]['input']))
+"""
+Input Transfermers
+"""
 
-def setLevels(network,inputNodes,currentLevel=0):
+def imageToBase64(image:np.ndarray)->str:
+    cv2.imwrite("./temp.png",image)
+    stream = open("./temp.png","rb")
+    return base64.b64encode(stream.read())
+
+def transfomImage(x:np.ndarray,shape:tuple,norm:bool=True):
+    image = (x.reshape(shape)*(255 if norm else 1)).astype(np.uint8)
+    base64string = imageToBase64(image)
+    return base64string
+
+def setLevels(network:dict,inputNodes:list,currentLevel:int=0):
     for node in inputNodes:
         network[node]['level'] = currentLevel
         setLevels(network,network[node]['outbound'],currentLevel+1)
 
-def getNetworkConf(model,inputNodes):
+def getNetworkConf(model,inputNodes:list):
     modelConf = loads(model.to_json())
-
     network = {
         l['name']:{
             "inbound":[],
@@ -37,7 +54,7 @@ def getNetworkConf(model,inputNodes):
         levels[val['level']].append(node)
     return network,levels
 
-def setOutput(model,network:dict,levels:list):
+def setOutput(model,network:dict,levels:list,input_values:dict):
     tempOut = dict()
     for level in levels:
         for layer in level:
@@ -53,12 +70,13 @@ def setOutput(model,network:dict,levels:list):
                     out = model.get_layer(layer)(inputs)
                     tempOut[layer] = out
                     network[layer]['outputs'] = list((out.numpy().astype(float) / out.numpy().max())[0])
-
             else:
-                inputs = inputValues[layer]
+                inputs = input_values[layer]
                 out = model.get_layer(layer)(inputs)
                 tempOut[layer] = out
                 network[layer]['outputs'] = list((out.numpy().astype(float) / out.numpy().max())[0])
+
+NETWORK,LEVELS = getNetworkConf(cfg.model,['input'])
 
 @app.route("/")
 def index():
@@ -66,12 +84,27 @@ def index():
 
 @app.route("/inputs",methods=['GET','POST'])
 def get_inputs():
-    pass
+    return {
+        "inputs":list(cfg.inputs.keys())
+    }
+    
 
-@app.route("/predict")
-def predict():
-    return "predicted"
+@app.route("/predict/<string:example>")
+def predict(example:str):
+    network,levels = NETWORK.copy(),LEVELS.copy()
+    inp = cfg.inputs[example]
+    setOutput(cfg.model,network,levels,input_values=inp)
+    return  {
+        "network":network,
+        "levels":levels[1:],
+        "output_class":{
+            "out":inp['output_class']
+        },
+        "input":{
+            "type":"image",
+            "value":str(transfomImage(inp['input'],(28,28)),encoding="utf-8")
+        }
+    }
 
 if __name__ == "__main__":
-    # app.run(host="localhost",port="8081")
-    pass
+    app.run(host="localhost",port="8081")
