@@ -43,7 +43,7 @@ function App() {
       max:0,
       x:0,
       y:0,
-      margin:8
+      margin:6,
     },
     level:{
       height:0,
@@ -51,12 +51,21 @@ function App() {
       x:0,
       y:0,
       padding:8,
-      margin:48
+      margin:48,
+      last:[]
     },
     layer:{
       x:0,
       y:0,
       width:0
+    },
+    edges:{
+      to:{},
+      map:{}
+    },
+    font:{
+      x:0,
+      y:0
     }
   })
 
@@ -92,13 +101,7 @@ function App() {
     })
   }
 
-  function drawNetwork(data){
-    let ctx = document.getElementById("graph").getContext("2d");
-    let neuronCords = Object();
-
-    let lastLevel = [];
-    let lineTo;
-
+  function setupInput(data){
     let inputDiv = document.getElementById("input");
     inputDiv.style.height= "150px";
     inputDiv.style.width = `${config.canvas.width}px`
@@ -111,78 +114,61 @@ function App() {
     input.style.width = "100px";
     input.src = 'data:image/png;base64,' + data.input.value;
 
-    // Iterating levels to draw hierarchy
-    data.levels.map((level,i)=>{
-      let n = level.reduce((a,b) => a + data.network[b].outputs.length, 0);  
-      let levelWidth = (n * 2 * config.neuron.radius ) + ((n + 1)*config.neuron.margin) + config.level.padding;
-      let layerWidth = Math.floor(levelWidth/level.length)
-      // Iterating layers in current level
-      level.map((layer,j)=>{
-        let layerX = Math.floor(
-          (config.canvas.width/2) - 
-          (levelWidth/2) + 
-          (j*layerWidth) - 
-          (config.level.height*(level.length-1)) + 
-          (config.level.height*2*(j))
-        );
+  }
 
-        let layerY = config.canvas.padding + ( i * ( config.level.height +  ( 2 * config.level.margin ))) + 100;
-        draw.Rect({
-          x:layerX,
-          y:layerY,
-          h:config.level.height,
-          w:layerWidth
-        },ctx)
-
-        if (i > 0){
-          lastLevel = data.levels[i-1];
+  function renderEdges(ctx,config,data){
+    config.level.last.map((layer,_)=>{
+      data.network[layer].outputs.map((neuron,l)=>{
+        config.edges.to = config.edges.map[`${layer}_${l}`];
+        if (neuron > 0.8){
+          draw.Line({
+            x0:config.neuron.x,
+            y0:config.neuron.y - 11,
+            x1:config.edges.to.x,
+            y1:config.edges.to.y + 11,
+            t:0.1,
+            c:`rgba(0,0,0,${neuron})`
+          },ctx)  
         }
-
-        // Iterating neurons in current layer 
-        data.network[layer].outputs.map((neuron,k)=>{
-          let neuronY = layerY + config.neuron.radius + config.level.padding;
-          let neuronX = layerX + config.neuron.radius + (k*((config.neuron.radius*2)+config.neuron.margin)) + config.level.padding
-          
-          neuronCords[`${layer}_${k}`] = {
-            x:neuronX,
-            y:neuronY
-          };
-          draw.Circle({
-            x:neuronX,
-            y:neuronY,
-            r:config.neuron.radius,
-            c:`rgba(0,0,0,${neuron+0.1})`
-          },ctx)
-          
-          lastLevel.map((layer,_)=>{
-            data.network[layer].outputs.map((neuron,l)=>{
-              lineTo = neuronCords[`${layer}_${l}`];
-              if (neuron > 0.8){
-                draw.Line({
-                  x0:neuronX,
-                  y0:neuronY- 10,
-                  x1:lineTo.x,
-                  y1:lineTo.y + 10,
-                  t:0.1,
-                  c:`rgba(0,0,0,${neuron})`
-                },ctx)  
-              }
-            })
-          })
-        })
       })
     })
+  }
 
-    let fontY = (config.level.height + config.level.margin)*(data.levels.length+4)+50;
-    let nouts = Object.keys(data.output_class).length;
+  function renderNeuron(ctx,config,neuron,k,layer){
+    config.neuron.y = (
+      config.layer.y + 
+      config.neuron.radius + 
+      config.level.padding
+    );
+    config.neuron.x = (
+      config.layer.x + 
+      config.neuron.radius + 
+      (k*((config.neuron.radius*2)+config.neuron.margin)) + 
+      config.level.padding
+    )
+    
+    config.edges.map[`${layer}_${k}`] = {
+      x:config.neuron.x,
+      y:config.neuron.y
+    };
 
+    draw.Circle({
+      x:config.neuron.x,
+      y:config.neuron.y,
+      r:config.neuron.radius,
+      c:`rgba(0,0,0,${neuron+0.1})`
+    },ctx)
+  }
+
+  function setOutput(ctx,config,data){
+    config.font.y = (config.level.height + config.level.margin)*(data.levels.length+3)+50;
     Object.keys(data.output_class).map((layer,i)=>{
       let text = data.output_class[layer] + ' ';
       let textMetrics = ctx.measureText(text);
       let fontSize = 30;
       let fontWidth = Math.floor(textMetrics.width * ( fontSize / 9));
 
-      let fontX = Math.floor( 
+      config.font.x = Math.floor( 
         (config.canvas.width/2) + 
         (config.canvas.padding / 2) -
         (fontWidth / 2) 
@@ -193,35 +179,82 @@ function App() {
       ctx.fillStyle = "#333";
       ctx.fillText(
         text,
-        fontX,
-        fontY
+        config.font.x,
+        config.font.y
       );
 
       draw.Rect({
-        x:fontX - 6,
-        y:fontY - fontSize,
+        x:config.font.x - 6,
+        y:config.font.y - fontSize,
         w: fontWidth,
         h: fontSize + 6
       },ctx)
 
-
       data.network[layer].outputs.map((neuron,l)=>{
-        lineTo = neuronCords[`${layer}_${l}`];
-        if (neuron > 0.5){
+        config.edges.to = config.edges.map[`${layer}_${l}`];
+        if (neuron > 0.9){
           draw.Line({
-            x0:Math.floor(fontX + (fontWidth / 3)) ,
-            y0:Math.floor(fontY - fontSize ),
-            x1:lineTo.x,
-            y1:lineTo.y,
+            x0:Math.floor(config.font.x + (fontWidth / 3)) ,
+            y0:Math.floor(config.font.y - fontSize ),
+            x1:config.edges.to.x,
+            y1:config.edges.to.y,
             t:1,
             c:`rgba(0,0,0,${neuron})`
           },ctx)  
         }
       })
-
-
     })
+  }
 
+  function drawNetwork(data){
+    let ctx = document.getElementById("graph").getContext("2d");
+    config.level.last = []
+
+    // Iterating levels to draw hierarchy
+    data.levels.map((level,i)=>{
+      let n = level.reduce((a,b) => a + data.network[b].outputs.length, 0); // Number of neurons in current level
+      config.level.width = Math.floor(
+        (n * 2 * config.neuron.radius ) + 
+        ((n + 1)*config.neuron.margin) + 
+        config.level.padding
+      ); // Current level width
+      config.layer.width = Math.floor(config.level.width/level.length) // Width of each layer in current level , change to dynamic adaption for variables size layers
+      
+      // Iterating layers in current level
+      level.map((layer,j)=>{
+        config.layer.x = Math.floor(
+          (config.canvas.width/2) - 
+          (config.level.width/2) + 
+          (j*config.layer.width) - 
+          (config.level.height*(level.length-1)) + 
+          (config.level.height*2*(j))
+        ); 
+        config.layer.y = Math.floor(
+          config.canvas.padding + 
+          ( i * ( config.level.height +  ( 2 * config.level.margin ))) + 
+          50
+        );
+
+        draw.Rect({
+          x:config.layer.x,
+          y:config.layer.y,
+          h:config.level.height,
+          w:config.layer.width
+        },ctx)
+
+        if (i > 0){
+          config.level.last = data.levels[i-1];
+        }
+        // Rendering Neurons
+        data.network[layer].outputs.map((neuron,k)=>{
+          renderNeuron(ctx,config,neuron,k,layer);
+          // Rendering edges
+          renderEdges(ctx,config,data);
+
+        })
+      })
+    })
+    setOutput(ctx,config,data)
   }
 
   let [input,inputState] = React.useState({
@@ -247,7 +280,9 @@ function App() {
         example:example
       }
     }).then(response=>{
+      console.log(response.data.network)
       setupCanvas(response.data);
+      setupInput(response.data);
       drawNetwork(response.data);
     })
   }

@@ -52,6 +52,7 @@ def getNetworkConf(model,inputNodes:list):
     levels = [[] for i in range(max([i['level'] for _,i in network.items()])+1)]
     for node,val in network.items():
         levels[val['level']].append(node)
+
     return network,levels
 
 def setOutput(model,network:dict,levels:list,input_values:dict):
@@ -85,15 +86,15 @@ def index():
 @app.route("/inputs",methods=['GET','POST'])
 def get_inputs():
     return {
-        "inputs":list(cfg.inputs.keys())
+        "inputs":list(cfg.input_config['examples'].keys())
     }
     
-
 @app.route("/predict/<string:example>")
 def predict(example:str):
     network,levels = NETWORK.copy(),LEVELS.copy()
-    inp = cfg.inputs[example]
+    inp = cfg.input_config['examples'][example]
     setOutput(cfg.model,network,levels,input_values=inp)
+    
     return  {
         "network":network,
         "levels":levels[1:],

@@ -19,12 +19,26 @@ Data Prep
 (x,y),(_,_) = tf.keras.datasets.mnist.load_data()
 x = x.reshape(-1,28*28).astype(np.float32) / 255
 
-inputs = {
-    f"{i}_class_{str(y[i])}":{
-        "output_class":str(y[i]),
-        "input":x[i:i+1]
+input_config = {
+    "types":{
+        "input":{
+            "type":"image",
+            "render":True, 
+            "shape":(28,28) # Use (Height, Width, Channel) for RGB image and (Height, Width) for BW images
+        }
+    },
+    "examples":{
+        f"{i}_class_{str(y[i])}":{
+            "output_class": str(y[i]),
+            "input":x[i:i+1],
+            "transform":"image"
+        }
+        for i in np.random.randint(0,len(x),10)
     }
-    for i in np.random.randint(0,len(x),10)
+}
+
+output_config = {
+    "type":"single class",
 }
 
 model = model_from_json(open(model_path,"r").read())
