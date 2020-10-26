@@ -9,24 +9,17 @@ from tensorflow.keras.models import model_from_json
 
 from os import path as pathlib
 
-model_path = pathlib.abspath("./examples/notebooks/saved_model/mnist_dense.json")
-weights_path = pathlib.abspath("./examples/notebooks/saved_model/mnist_dense")
+model_path = pathlib.abspath("./examples/notebooks/saved_model/mnist_conv.json")
+weights_path = pathlib.abspath("./examples/notebooks/saved_model/mnist_conv")
 
 """
 Data Prep
 """
 
 (x,y),(_,_) = tf.keras.datasets.mnist.load_data()
-x = x.reshape(-1,28*28).astype(np.float32) / 255
+x = x.astype(np.float32).reshape(-1,28,28,1) / 255
 
 input_config = {
-    "types":{
-        "input":{
-            "type":"image",
-            "render":True, 
-            "shape":(28,28) # Use (Height, Width, Channel) for RGB image and (Height, Width) for BW images
-        }
-    },
     "examples":{
         f"{i}_class_{str(y[i])}":{
             "output_class": str(y[i]),
@@ -34,6 +27,14 @@ input_config = {
             "transform":"image"
         }
         for i in np.random.randint(0,len(x),10)
+    },
+    "layers":{
+        "input":{
+            "type":"image",
+            "shape":(28,28),
+            "transformer":"prepareInputImage",
+            "resize":(128,128)
+        }
     }
 }
 
