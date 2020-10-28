@@ -9,15 +9,15 @@ from tensorflow.keras.models import model_from_json
 
 from os import path as pathlib
 
-model_path = pathlib.abspath("./examples/notebooks/saved_model/mnist_conv.json")
-weights_path = pathlib.abspath("./examples/notebooks/saved_model/mnist_conv")
+model_path = pathlib.abspath("./examples/notebooks/saved_model/mnist_dense.json")
+weights_path = pathlib.abspath("./examples/notebooks/saved_model/mnist_dense")
 
 """
 Data Prep
 """
 
 (x,y),(_,_) = tf.keras.datasets.mnist.load_data()
-x = x.astype(np.float32).reshape(-1,28,28,1) / 255
+x = x.astype(np.float32).reshape(-1,28*28*1) / 255
 
 input_config = {
     "examples":{
@@ -28,7 +28,7 @@ input_config = {
         }
         for i in np.random.randint(0,len(x),10)
     },
-    "layers":{
+    "layer_config":{
         "input":{
             "type":"image",
             "shape":(28,28),

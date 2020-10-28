@@ -70,7 +70,7 @@ def prepDense(output:np.ndarray)->list:
     
 def prepInputLayer(image,layer):
     layer = layer.get_config()
-    input_config  = cfg.input_config['layers'][layer['name']]
+    input_config  = cfg.input_config['layer_config'][layer['name']]
     return transformers.get(input_config.get('transformer'))(image,input_config)
     
 prepFunctions = {
@@ -123,10 +123,11 @@ def predict(example:str):
     
     return  {
         "network":network,
-        "levels":levels[1:],
+        "levels":levels,
         "output_class":{
             "out":inp['output_class']
-        }
+        },
+        "input_config":cfg.input_config['layer_config']
     }
 
 if __name__ == "__main__":

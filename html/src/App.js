@@ -55,41 +55,38 @@ function App() {
   }
 
   class Conv2D{
-    constructor(data={class_name:"Dense",inbound:[],outbound:[],outputs:[],level:0},ctx=CanvasRenderingContext2D) {
+    constructor(data={class_name:"Dense",inbound:[],outbound:[],outputs:[],level:0},ctx=CanvasRenderingContext2D,name='Conv2D') {
       this.data = data;    
-      this.ctx = ctx;  
-    }
-  }
-
-  class MaxPoolling2D{
-    constructor(data={class_name:"Dense",inbound:[],outbound:[],outputs:[],level:0},ctx=CanvasRenderingContext2D) {
-      this.data = data;    
-      this.ctx = ctx;  
-    }
-  }
-
-  class InputLayer{
-    constructor(data={class_name:"Dense",inbound:[],outbound:[],outputs:[],level:0},ctx=CanvasRenderingContext2D) {
-      this.data = data;    
-      this.ctx = ctx;  
-    }
-  }
-
-  class Dense{
-    constructor(data={class_name:"Dense",inbound:[],outbound:[],outputs:[],level:0},ctx=CanvasRenderingContext2D) {
-      this.data = data;    
-      this.ctx = ctx;  
+      this.ctx = ctx;
+      this.name = name;
       this.config = {
         radius:3,
         margin:6,
         height:0,
-        width:0
-      }
+        width:0,
+      }  
     }
+
+    popUp(i,x,y){
+      window.popped = false;
+      let canv = document.createElement("img");
+      let pop = document.getElementById("pop");
+      canv.className = "popup-img";
+      canv.src = this.data.outputs[i];
+      pop.innerHTML = '';
+
+      pop.style.top = `${y}px`
+      pop.style.left = `${x}px`
+      
+      pop.appendChild(canv)
+      setTimeout(function(){
+        window.popped = true;
+      },100)
+    } // End popUp
 
     calculateWidth(){
       this.config.width = ( this.data.outputs.length * 2 * this.config.radius ) + 
-        ( ( this.data.outputs.length + 2 ) * ( this.config.margin) );
+        ( ( this.data.outputs.length + 1 ) * ( this.config.margin) );
       return this.config.width
     }
 
@@ -97,8 +94,8 @@ function App() {
       this.config.height = 2 * (this.config.radius + 2 * this.config.margin);
       return this.config.height
     }
-    
-    renderNeuron(config,neuron,k,layer){
+
+    renderMap(config,neuron,k){
       config.neuron.y = (
         config.layer.y + 
         this.config.radius + 
@@ -107,12 +104,12 @@ function App() {
 
       config.neuron.x = (
         config.layer.x + 
-        config.neuron.radius + 
-        (k*((config.neuron.radius*2)+config.neuron.margin)) + 
-        config.level.padding
+        this.config.radius + 
+        (k*((this.config.radius*2)+this.config.margin)) + 
+        this.config.margin
       )
       
-      config.edges.map[`${layer}_${k}`] = {
+      config.edges.map[`${this.name}_${k}`] = {
         x:config.neuron.x,
         y:config.neuron.y
       };
@@ -120,8 +117,8 @@ function App() {
       draw.Circle({
         x:config.neuron.x,
         y:config.neuron.y,
-        r:config.neuron.radius,
-        c:`rgba(0,0,0,${neuron+0.1})`
+        r:this.config.radius,
+        c:`rgba(0,0,0,0.5)`
       },this.ctx)
     }
 
@@ -142,8 +139,8 @@ function App() {
         })
       })
     }
-
-    render(config,data,layer){
+    
+    render(config,data,network){
       draw.Rect({
         x:config.layer.x,
         y:config.layer.y,
@@ -153,20 +150,180 @@ function App() {
 
       // Rendering Neurons
       this.data.outputs.map((neuron,k)=>{
-        this.renderNeuron(config,neuron,k,layer);
-        this.renderEdges(config,data);
+        this.renderMap(config,neuron,k);
+        // this.renderEdges(config,data);
       })
-
     }
+
+  }
+
+
+
+  class InputLayer{
+    constructor(data={class_name:"Dense",inbound:[],outbound:[],outputs:[],level:0},ctx=CanvasRenderingContext2D,name="InputLayer") {
+      this.data = data;    
+      this.ctx = ctx;  
+      this.name = name;
+      this.config = {
+        margin:6,
+        height:64,
+        width:128
+      }
+    }
+
+    calculateWidth(){
+      return this.config.width
+    }
+
+    calculateHeight(){
+      return this.config.height
+    }
+
+    prepFunction_image(config,data){
+
+      let Ix = Math.floor(config.canvas.width/2) ;
+      let Iy = 0;
+
+      this.ctx.beginPath()
+      this.ctx.rect(Ix - 72,Iy,144,144)
+      this.ctx.strokeStyle = "#333"
+      this.ctx.lineWidth = 2;
+      this.ctx.closePath();
+      this.ctx.stroke()
+
+      let image = new Image();
+      image.onload = function(){
+        document.getElementById("graph").getContext("2d").drawImage(image, Ix - 64,Iy + 8)
+      }
+      image.src = this.data.outputs;
+
+      //  Setting tail for edge from next layer
+      data.network[this.name].outputs = [1,]
+      config.edges.map[`${this.name}_0`] = {
+        x:Ix,
+        y:Iy + 132
+      }
+    }
+
+    render(config,data){
+      this['prepFunction_'+data.input_config[this.name].type](config,data);
+    }
+
+  }
+
+  class Dense{
+    constructor(data={class_name:"Dense",inbound:[],outbound:[],outputs:[],level:0},ctx=CanvasRenderingContext2D,name="Dense") {
+      this.data = data;    
+      this.ctx = ctx;  
+      this.name = name;
+      this.config = {
+        radius:3,
+        margin:6,
+        height:0,
+        width:0
+      }
+    } // End cunstructor
+
+    calculateWidth(){
+      this.config.width = ( this.data.outputs.length * 2 * this.config.radius ) + 
+        ( ( this.data.outputs.length + 1) * ( this.config.margin) );
+      return this.config .width
+    } // End calculateWidth
+
+    calculateHeight(){
+      this.config.height = 2 * (this.config.radius + 2 * this.config.margin);
+      return this.config.height
+    } // End calculateHeight
+
+    popUp(i,x,y){
+      window.popped = false;
+      let canv = document.createElement("div");
+      let pop = document.getElementById("pop");
+      canv.className = "popup";
+      canv.innerText = String(this.data.outputs[i]).slice(0,8);
+      pop.innerHTML = '';
+
+      pop.style.top = `${y}px`
+      pop.style.left = `${x}px`
+      
+      pop.appendChild(canv)
+      setTimeout(function(){
+        window.popped = true;
+      },100)
+    } // End popUp
+    
+    renderNeuron(config,neuron,k,layer){
+      config.neuron.y = (
+        config.layer.y + 
+        this.config.radius + 
+        this.config.margin * 2
+      );
+
+      config.neuron.x = (
+        config.layer.x + 
+        this.config.radius + 
+        (k*((this.config.radius*2)+this.config.margin)) + 
+        this.config.margin
+      )
+      
+      config.edges.map[`${layer}_${k}`] = {
+        x:config.neuron.x,
+        y:config.neuron.y
+      }; 
+  
+      draw.Circle({
+        x:config.neuron.x,
+        y:config.neuron.y,
+        r:this.config.radius,
+        c:`rgba(0,0,0,${neuron+0.1})`
+      },this.ctx)
+    } // End renderNeuron
+
+    renderEdges(config,data,network){
+      let p1 = Math.floor( this.config.margin * 2.5),p2;
+      config.level.last.map((layer,_)=>{
+        p2 = Math.floor(network[layer].config.margin * 2.5)
+        data.network[layer].outputs.map((neuron,l)=>{
+          config.edges.to = config.edges.map[`${layer}_${l}`];
+          if (neuron > 0.8){
+            draw.Line({
+              x0:config.neuron.x,
+              y0:config.neuron.y - p1,
+              x1:config.edges.to.x,
+              y1:config.edges.to.y + p2,
+              t:0.1,
+              c:`rgba(0,0,0,${neuron})`
+            },this.ctx)  
+          }
+        })
+      })
+    }
+
+    render(config,data,network){
+      draw.Rect({
+        x:config.layer.x,
+        y:config.layer.y,
+        h:config.level.height,
+        w:this.config.width
+      },this.ctx)
+
+      // Rendering Neurons
+      this.data.outputs.map((neuron,k)=>{
+        this.renderNeuron(config,neuron,k,this.name);
+        this.renderEdges(config,data,network);
+      })
+    } // End render
   }
 
   let layers = {
     "Dense":Dense,
     "Concatenate":Dense,
     "Conv2D":Conv2D,
-    "MaxPoolling2D":MaxPoolling2D,
-    "InputLayer":InputLayer
+    "InputLayer":InputLayer,
+    "Flatten":Dense,
+    "MaxPooling2D":Conv2D
   }
+
 
   class Network{
     constructor(data={network:{},levels:[],output_class:[],input:[]},ctx=CanvasRenderingContext2D,canvas=undefined){
@@ -196,13 +353,15 @@ function App() {
           x:0,
           y:0,
           padding:8,
-          margin:32,
-          last:[]
+          margin:96,
+          last:[],
+          depth:0
         },
         layer:{
           x:0,
           y:0,
-          width:0
+          width:0,
+          padding:8
         },
         edges:{
           to:{},
@@ -218,29 +377,39 @@ function App() {
       
       Object.keys(this.data.network).map((layer,i)=>{
         let _layer = this.data.network[layer];
-        this.network[layer] = new layers[_layer.class_name](data=_layer,ctx=this.ctx);
-      })
+        this.network[layer] = new layers[_layer.class_name](data=_layer,ctx=this.ctx,layer);
+      },100)
     }
 
     setupCanvas(){
       this.config.neuron.max = Math.max(...this.data.levels.map((level,_)=>{
             return level.reduce((a,b) => a + this.data.network[b].outputs.length, 0);
-      }))
+      })) 
   
       this.config.level.height =   2 * ( this.config.neuron.radius + this.config.level.padding);
   
       this.config.canvas.width = Math.max(
         ( window.innerWidth - 5 ),
-        (this.config.neuron.max * 2 * this.config.neuron.radius ) + 
-        ((this.config.neuron.max + 1)*this.config.neuron.margin) + 
-        ( 3 * this.config.canvas.padding ) 
-      );
+        Math.max(...this.data.levels.map((level)=>{
+          return level.map((layer,_)=>{
+              return this.network[layer].calculateWidth() + ( 2 * 48);
+            }).reduce(function(a,b){
+              return a+b;
+            },0)
+          })
+        )
+      ); // End Math.max
   
-      this.config.canvas.height = Math.max(
-        ( window.innerHeight - 95 ), 
-        ( ( ( this.data.levels.length ) * ( this.config.level.height + this.config.level.margin )) + ( this.config.level.margin * 9 ))
-      );
+      this.config.canvas.height = this.data.levels.map((level)=>{
+            return ( this.config.level.margin )+ Math.max(...level.map((layer,_)=>{
+              return this.network[layer].calculateHeight();
+            }))
+          }).reduce(function(a,b){
+          return a+b;
+        }); // this.data.levels.map
   
+      console.log(this.config.canvas.height)
+
       this.canvas.width = this.config.canvas.width;
       this.canvas.height = this.config.canvas.height + (this.config.level.margin * 2) ;
       this.canvas.style.overflow = "hidden";  
@@ -251,27 +420,10 @@ function App() {
       this.ctx.closePath()
       this.ctx.fill()
 
-    }
-
-    setInput(){
-      let imageX,imageY;
-      let image = new Image();
-      image.style.height = "100px";
-      image.style.width = "100px";
-      image.src = 'data:image/png;base64,' + this.data.input.value;
-
-      imageX = Math.floor( ( this.config.canvas.width / 2 ) - (128/2));
-      imageY = 0;
-
-      setTimeout(function(){
-        document.getElementById("graph").getContext("2d").drawImage(
-          image, imageX, imageY
-        );
-      })
-    }
+    } // End setupCanvas
 
     setOutput(){
-      this.config.font.y = this.config.network.height + ( this.config.level.margin * 2 ) + 128 + 48 ;
+      this.config.font.y = this.config.network.height + this.config.level.margin + 16;
 
       Object.keys(this.data.output_class).map((layer,i)=>{
         let text = this.data.output_class[layer] + ' ';
@@ -283,7 +435,7 @@ function App() {
           (this.config.canvas.width/2) + 
           (this.config.canvas.padding / 2) -
           (fontWidth / 2) 
-        );
+        ); // End Math.floor
 
         this.ctx.beginPath();
         this.ctx.font = `${fontSize}px Arial`;
@@ -313,28 +465,21 @@ function App() {
               c:`rgba(0,0,0,${neuron})`
             },this.ctx)  
           }
-        })
-      })
-
+        }) // End this.data.network[layer].outputs.map
+      }) // Object.keys(this.data.output_class).map
     } // End setOutput
 
     render(){
-      this.setInput();
       this.data.levels.map((level,i)=>{
         this.config.level.width = level.map((layer,_)=>{
           return this.network[layer].calculateWidth();
         }).reduce(function(a,b){
           return a+b;
-        },0)
+        },0) // End reduce -> level.map
         
         this.config.level.height = Math.max(...level.map((layer,_)=>{
           return this.network[layer].calculateHeight();
         }))
-
-        this.config.network.height += ( 
-          this.config.level.height + 
-          ( this.config.level.margin * 2)
-        )
 
         // Iterating layers in current level
         level.map((layer,j)=>{
@@ -344,31 +489,74 @@ function App() {
             (j* this.network[layer].config.width) - 
             (this.config.level.height*(level.length-1)) + 
             (this.config.level.height*2*(j))
-          ); 
+          ); // End level.map 
           
-          this.config.layer.y = 128 + this.config.level.margin + Math.floor(
-            this.config.canvas.padding + 
-            ( i * ( this.config.level.height +  ( 2 * this.config.level.margin ))) + 
-            50
-          );
+          this.config.layer.y = this.config.level.margin + this.config.network.height;
 
           if (i > 0){
             this.config.level.last = this.data.levels[i-1];
-          }else{
-            this.config.level.last = ['input'];
-            this.data.network['input'].outputs = [1,]
-            this.config.edges.map['input_0'] = {
-              y:114,
-              x:Math.floor( ( this.config.canvas.width / 2 ))
-            }
-          }
-          this.network[layer].render(this.config,this.data,layer)
+          } // End if
+          this.network[layer].render(this.config,this.data,this.network)
         })
-      })
+        this.config.network.height += ( 
+          this.config.level.height + 
+          this.config.level.margin 
+        )
+      }) // End this.data.levels.map
       this.setOutput();
     } // End Render
 
-  }
+    addHandler(){
+      let config = this.config;
+      let data = this.data;
+      let network = this.network;
+      let x,y,_x,_y,i,j,k,xlim;
+      let depth,bredth;
+      let levelHeight = 0,levelWidth;
+      let level;
+      let diff;
+
+      this.canvas.onclick = function (e){
+        x = e.pageX;
+        y = e.pageY-150;
+        depth = 0;
+        bredth = 0;
+
+        if ( y < config.network.height){
+          for(i=0;i < data.levels.length; i++){
+            level = data.levels[i];
+            levelHeight = Math.max(...level.map((layer,_)=>{
+              return network[layer].calculateHeight();
+            })) // End Math.max
+
+            levelWidth = level.map((layer,_)=>{
+              return network[layer].calculateWidth();
+            }).reduce(function(a,b){
+              return a+b;
+            },0) // End level.map
+
+            depth += levelHeight + config.level.margin;
+            diff = y - depth;
+            if ( diff < 0 && diff + levelHeight > -1){
+              level.map((layer,j)=>{
+                layer = network[layer];
+                bredth = Math.floor(( config.canvas.width / 2 ) -  ( levelWidth / 2 )) + layer.config.margin;
+                diff = x - bredth;
+                if(diff > -1 && diff < levelWidth - config.layer.padding){
+                  i = Math.floor(diff / ( ( 2 * layer.config.radius )+layer.config.margin))
+                  xlim = Math.floor( i * ( ( 2 * layer.config.radius )+layer.config.margin)) + (2 * layer.config.radius)
+                  if (diff < xlim){
+                    layer.popUp(i,x,y+150);
+                  } // End If
+                }// End If
+              }) // End level.map
+              break
+            }// End If
+          } // End For
+        } // End If
+      } // End function (e)
+    } // End addHandler
+  } // End class Network
 
   
   async function renderGraph(example){
@@ -382,36 +570,45 @@ function App() {
       let canvas = document.getElementById("graph");
       let ctx = canvas.getContext('2d');
 
-      console.log(response.data);
-      
-
+      let net = new Network(response.data,ctx,canvas)
+      net.setupCanvas();
+      net.render();
+      net.addHandler();
     })
   }
 
   React.useEffect(()=>{
     getInputs();
+    window.popped = false;
   },[])
-  
+
+  function clearPop(){
+    if (window.popped){
+      document.getElementById('pop').innerHTML = '';
+      window.popped = false;
+    }
+  }
   return (
-    <div>
-      <div className="examples">
+    <div className="root" id="root" onClick={clearPop}>
+      <div id="pop" className="pop">
+
+      </div>
+      <div style={{height:"150px"}}></div>
+      <select onChange={(e)=>renderGraph(e.target.value)}>
+        <option> Select Example ...</option>
         {
           input.examples.map((example,i)=>{
             return (
-              <div className="example" key={i} onClick={()=>renderGraph(example)}>
+              <option key={i} >
                 {example}
-              </div>
+              </option>
             )
           })
         }
-      </div>
-      <div id="input">
-        <img id="image" style={{}}>
-                  
-        </img>
-      </div>
-      <canvas id="graph" style={{background:"whitesmoke",overflow:"scroll",}}>
+      </select>
+      <canvas id="graph" style={{background:"whitesmoke",overflow:"scroll",}} >
       </canvas>
+      
     </div>      
   );
 }
