@@ -30,33 +30,22 @@ function App() {
       ctx.stroke();
     }
   };
+  
   let [input,inputState] = React.useState({
     examples:[]
   })
-  
-  async function getInputs(){
-    await axios({
-      url:"http://localhost:8081/inputs",
-      method:"GET"
-    }).then(response=>{
-      inputState({
-        examples:response.data.inputs
-      })
-    })
-  }
-
-  
 
   class Concatenate{
     constructor(data={class_name:"Dense",inbound:[],outbound:[],outputs:[],level:0},ctx=CanvasRenderingContext2D) {
       this.data = data;    
       this.ctx = ctx;  
-    }
-  }
+    } // End constrctor
+  } // End Concatenate
 
   class Conv2D{
     constructor(data={class_name:"Dense",inbound:[],outbound:[],outputs:[],level:0},ctx=CanvasRenderingContext2D,name='Conv2D') {
-      this.data = data;    
+      this.data = data;
+      this.data.output_maps = [...this.data.outputs]    
       this.ctx = ctx;
       this.name = name;
       this.config = {
@@ -65,16 +54,20 @@ function App() {
         height:0,
         width:0,
       }  
-    }
+    } // End constructor
 
     popUp(i,x,y){
       window.popped = false;
-      let canv = document.createElement("img");
+      let canv = document.createElement("div");
       let pop = document.getElementById("pop");
+      
       canv.className = "popup-img";
-      canv.src = this.data.outputs[i];
+
+      let img = document.createElement("img");
+      img.src = this.data.output_maps[i];
       pop.innerHTML = '';
 
+      canv.appendChild(img)
       pop.style.top = `${y}px`
       pop.style.left = `${x}px`
       
@@ -88,12 +81,12 @@ function App() {
       this.config.width = ( this.data.outputs.length * 2 * this.config.radius ) + 
         ( ( this.data.outputs.length + 1 ) * ( this.config.margin) );
       return this.config.width
-    }
+    } // End calculateWidth
 
     calculateHeight(){
       this.config.height = 2 * (this.config.radius + 2 * this.config.margin);
       return this.config.height
-    }
+    } // End calculateHeight
 
     renderMap(config,neuron,k){
       config.neuron.y = (
@@ -113,32 +106,41 @@ function App() {
         x:config.neuron.x,
         y:config.neuron.y
       };
-  
+      
+      config.edges.map[`${this.name}_${k}`] = {
+        x:config.neuron.x,
+        y:config.neuron.y
+      }; 
+      
+      this.data.outputs[k] = 0.9
+      
       draw.Circle({
         x:config.neuron.x,
         y:config.neuron.y,
         r:this.config.radius,
         c:`rgba(0,0,0,0.5)`
       },this.ctx)
-    }
+    } // End renderMap
 
-    renderEdges(config,data){
+    renderEdges(config,data,network){
+      let p1 = Math.floor( this.config.margin * 2.5),p2;
       config.level.last.map((layer,_)=>{
+        p2 = Math.floor(network[layer].config.margin * 2.5)
         data.network[layer].outputs.map((neuron,l)=>{
           config.edges.to = config.edges.map[`${layer}_${l}`];
           if (neuron > 0.8){
             draw.Line({
               x0:config.neuron.x,
-              y0:config.neuron.y - 15,
+              y0:config.neuron.y - p1,
               x1:config.edges.to.x,
-              y1:config.edges.to.y + 15,
+              y1:config.edges.to.y + p2,
               t:0.1,
-              c:`rgba(0,0,0,${neuron})`
+              c:`rgba(0,0,0,0.15)`
             },this.ctx)  
           }
         })
       })
-    }
+    } // End renderEdges
     
     render(config,data,network){
       draw.Rect({
@@ -151,13 +153,11 @@ function App() {
       // Rendering Neurons
       this.data.outputs.map((neuron,k)=>{
         this.renderMap(config,neuron,k);
-        // this.renderEdges(config,data);
+        this.renderEdges(config,data);
       })
-    }
+    } // End render
 
-  }
-
-
+  } // End Conv2D
 
   class InputLayer{
     constructor(data={class_name:"Dense",inbound:[],outbound:[],outputs:[],level:0},ctx=CanvasRenderingContext2D,name="InputLayer") {
@@ -169,15 +169,15 @@ function App() {
         height:64,
         width:128
       }
-    }
+    } // End constructor
 
     calculateWidth(){
       return this.config.width
-    }
+    } // End calculateWidth
 
     calculateHeight(){
       return this.config.height
-    }
+    } // End calculateHeight
 
     prepFunction_image(config,data){
 
@@ -203,13 +203,13 @@ function App() {
         x:Ix,
         y:Iy + 132
       }
-    }
+    } // End prepFunction_image
 
     render(config,data){
       this['prepFunction_'+data.input_config[this.name].type](config,data);
-    }
+    } // End render
 
-  }
+  } // End InputLayer
 
   class Dense{
     constructor(data={class_name:"Dense",inbound:[],outbound:[],outputs:[],level:0},ctx=CanvasRenderingContext2D,name="Dense") {
@@ -252,7 +252,7 @@ function App() {
       },100)
     } // End popUp
     
-    renderNeuron(config,neuron,k,layer){
+    renderNeuron(config,neuron,k){
       config.neuron.y = (
         config.layer.y + 
         this.config.radius + 
@@ -266,7 +266,7 @@ function App() {
         this.config.margin
       )
       
-      config.edges.map[`${layer}_${k}`] = {
+      config.edges.map[`${this.name}_${k}`] = {
         x:config.neuron.x,
         y:config.neuron.y
       }; 
@@ -292,12 +292,12 @@ function App() {
               x1:config.edges.to.x,
               y1:config.edges.to.y + p2,
               t:0.1,
-              c:`rgba(0,0,0,${neuron})`
+              c:`rgba(0,0,0,0.7)`
             },this.ctx)  
           }
         })
       })
-    }
+    } // End renderEdges
 
     render(config,data,network){
       draw.Rect({
@@ -309,11 +309,12 @@ function App() {
 
       // Rendering Neurons
       this.data.outputs.map((neuron,k)=>{
-        this.renderNeuron(config,neuron,k,this.name);
+        this.renderNeuron(config,neuron,k);
         this.renderEdges(config,data,network);
       })
     } // End render
-  }
+
+  } // End Dense
 
   let layers = {
     "Dense":Dense,
@@ -323,7 +324,6 @@ function App() {
     "Flatten":Dense,
     "MaxPooling2D":Conv2D
   }
-
 
   class Network{
     constructor(data={network:{},levels:[],output_class:[],input:[]},ctx=CanvasRenderingContext2D,canvas=undefined){
@@ -557,8 +557,18 @@ function App() {
       } // End function (e)
     } // End addHandler
   } // End class Network
+    
+  async function getInputs(){
+    await axios({
+      url:"http://localhost:8081/inputs",
+      method:"GET"
+    }).then(response=>{
+      inputState({
+        examples:response.data.inputs
+      })
+    })
+  } // End getInputs
 
-  
   async function renderGraph(example){
     await axios({
       method:"GET",
@@ -575,7 +585,7 @@ function App() {
       net.render();
       net.addHandler();
     })
-  }
+  } // End renderGraph
 
   React.useEffect(()=>{
     getInputs();
@@ -599,7 +609,7 @@ function App() {
         {
           input.examples.map((example,i)=>{
             return (
-              <option key={i} >
+              <option value={i} key={i} >
                 {example}
               </option>
             )

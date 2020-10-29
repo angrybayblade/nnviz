@@ -51,7 +51,25 @@ select {
     border-bottom-left-radius: 50% ;
 }
 
-.pop .popup-img{
+.popup-img{
     height: 100px;
     width: 100px;
 }
+
+.popup-img img{
+    height: 128px;
+    width: 128px;
+    margin-top: 6px;
+    margin-left: 6px;
+    border: whitesmoke solid 5px;
+}
+
+.popup-img::before{
+    content: "";
+    height: 150px;
+    width: 150px;
+    position: absolute;
+    z-index: -1;
+    background-color: #333333;
+}
+
