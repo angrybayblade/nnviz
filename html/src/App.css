@@ -1,19 +1,122 @@
-body{
-    background: whitesmoke;
+::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
 }
 
+/* Track */
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0);
+    border-radius: 2px;
+}
 
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: #3f3f3f;
+    border-radius: 2px;
+}
 
-select {
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: #333333;
+}
+
+body{
+    background: white;
+    overflow: scroll;
+}
+
+.dropdown{
     position: fixed;
     z-index: 999;
-    top: 10px;
-    left: 10px;
-    height: 30px;
-    width: 200px;
+    top: 30px;
+    left: 30px;
+    padding-right: 10px;
+    width: 310px;
 }
 
+.items{
+    width: 320px;
+    position: fixed;
+    top: 100px;
+    height: 85vh;
+    overflow-y: scroll;
+}
 
+.btn-drop{
+    cursor: pointer;
+    position: fixed;
+    left: 295px;
+    transition-property: all;
+    transition-duration: 500ms;
+    transform: rotateZ(0deg);
+}
+
+.btn-rotated{
+    transform: rotateZ(180deg);
+}
+
+.option{
+    height: 50px;
+    width: 300px;
+    border: solid 3px #333333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 500;
+    letter-spacing: 3px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    background: white;
+}
+
+.selected{
+    position: fixed;
+    cursor: pointer;
+}
+
+.select::before{
+    content: "";
+    height: 13px;
+    width: 3px;
+    position: relative;
+    background: #333333;
+    top: -35px;
+    left: -50px;
+    z-index: 99999;
+}
+
+.select::after{
+    content: "";
+    height: 13px;
+    width: 3px;
+    position: relative;
+    background: #333333;
+    top: 32px;
+    left: 50px;
+    z-index: 99999;
+}
+
+.animate{
+    animation: load_option 200ms;
+}
+
+@keyframes load_option{
+    0%{
+        transform: translateY(-1vh);
+    }
+    100%{
+        transform: translateY(0vh);
+    }
+}
+
+.btn-download{
+    position: fixed;
+    z-index: 999;
+    right: 30px;
+    top: 30px;
+    font-size: 2em;
+    cursor: pointer;
+}
 
 #graph{
     position: relative;
@@ -28,7 +131,7 @@ select {
 .popup{
     height: 100px;
     width: 100px;
-    background-color: whitesmoke;
+    background-color: white;
     color: #333333;
     display: flex;
     justify-content: center;
@@ -61,7 +164,7 @@ select {
     width: 128px;
     margin-top: 6px;
     margin-left: 6px;
-    border: whitesmoke solid 5px;
+    border: white solid 5px;
 }
 
 .popup-img::before{

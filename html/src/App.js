@@ -15,8 +15,8 @@ function App() {
     Rect:function(data={x:0,y:0,w:0,h:0},ctx){
       ctx.beginPath();
       ctx.rect(data.x,data.y,data.w,data.h);
-      ctx.lineWidth = 1;
-      ctx.strokeStyle = "#333";
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "#333333";
       ctx.closePath();
       ctx.stroke();
     },
@@ -30,10 +30,6 @@ function App() {
       ctx.stroke();
     }
   };
-  
-  let [input,inputState] = React.useState({
-    examples:[]
-  })
 
   class Concatenate{
     constructor(data={class_name:"Dense",inbound:[],outbound:[],outputs:[],level:0},ctx=CanvasRenderingContext2D) {
@@ -79,7 +75,7 @@ function App() {
 
     calculateWidth(){
       this.config.width = ( this.data.outputs.length * 2 * this.config.radius ) + 
-        ( ( this.data.outputs.length + 1 ) * ( this.config.margin) );
+        ( ( this.data.outputs.length + 3 ) * ( this.config.margin) );
       return this.config.width
     } // End calculateWidth
 
@@ -99,7 +95,7 @@ function App() {
         config.layer.x + 
         this.config.radius + 
         (k*((this.config.radius*2)+this.config.margin)) + 
-        this.config.margin
+        ( 2 * this.config.margin)
       )
       
       config.edges.map[`${this.name}_${k}`] = {
@@ -124,7 +120,7 @@ function App() {
 
     renderEdges(config,data,network){
       let p1 = Math.floor( this.config.margin * 2.5),p2;
-      config.level.last.map((layer,_)=>{
+      this.data.inbound.map((layer,_)=>{
         p2 = Math.floor(network[layer].config.margin * 2.5)
         data.network[layer].outputs.map((neuron,l)=>{
           config.edges.to = config.edges.map[`${layer}_${l}`];
@@ -153,7 +149,7 @@ function App() {
       // Rendering Neurons
       this.data.outputs.map((neuron,k)=>{
         this.renderMap(config,neuron,k);
-        this.renderEdges(config,data);
+        this.renderEdges(config,data,network);
       })
     } // End render
 
@@ -182,10 +178,10 @@ function App() {
     prepFunction_image(config,data){
 
       let Ix = Math.floor(config.canvas.width/2) ;
-      let Iy = 0;
+      let Iy = config.level.margin;
 
       this.ctx.beginPath()
-      this.ctx.rect(Ix - 72,Iy,144,144)
+      this.ctx.rect(Ix - 80,Iy,144,144)
       this.ctx.strokeStyle = "#333"
       this.ctx.lineWidth = 2;
       this.ctx.closePath();
@@ -193,7 +189,7 @@ function App() {
 
       let image = new Image();
       image.onload = function(){
-        document.getElementById("graph").getContext("2d").drawImage(image, Ix - 64,Iy + 8)
+        document.getElementById("graph").getContext("2d").drawImage(image, Ix - 72,Iy + 8)
       }
       image.src = this.data.outputs;
 
@@ -226,7 +222,7 @@ function App() {
 
     calculateWidth(){
       this.config.width = ( this.data.outputs.length * 2 * this.config.radius ) + 
-        ( ( this.data.outputs.length + 1) * ( this.config.margin) );
+        ( ( this.data.outputs.length + 3) * ( this.config.margin) );
       return this.config .width
     } // End calculateWidth
 
@@ -263,7 +259,7 @@ function App() {
         config.layer.x + 
         this.config.radius + 
         (k*((this.config.radius*2)+this.config.margin)) + 
-        this.config.margin
+        ( 2 * this.config.margin )
       )
       
       config.edges.map[`${this.name}_${k}`] = {
@@ -281,7 +277,7 @@ function App() {
 
     renderEdges(config,data,network){
       let p1 = Math.floor( this.config.margin * 2.5),p2;
-      config.level.last.map((layer,_)=>{
+      this.data.inbound.map((layer,_)=>{
         p2 = Math.floor(network[layer].config.margin * 2.5)
         data.network[layer].outputs.map((neuron,l)=>{
           config.edges.to = config.edges.map[`${layer}_${l}`];
@@ -310,6 +306,7 @@ function App() {
       // Rendering Neurons
       this.data.outputs.map((neuron,k)=>{
         this.renderNeuron(config,neuron,k);
+        console.log()
         this.renderEdges(config,data,network);
       })
     } // End render
@@ -341,19 +338,16 @@ function App() {
           height:0
         },
         neuron:{
-          radius:3,
           max:0,
           x:0,
           y:0,
-          margin:6,
         },
         level:{
           height:0,
           width:0,
           x:0,
           y:0,
-          padding:8,
-          margin:96,
+          margin:100,
           last:[],
           depth:0
         },
@@ -400,30 +394,28 @@ function App() {
         )
       ); // End Math.max
   
-      this.config.canvas.height = this.data.levels.map((level)=>{
+      this.config.canvas.height = this.config.level.margin + this.data.levels.map((level)=>{
             return ( this.config.level.margin )+ Math.max(...level.map((layer,_)=>{
               return this.network[layer].calculateHeight();
             }))
           }).reduce(function(a,b){
           return a+b;
         }); // this.data.levels.map
-  
-      console.log(this.config.canvas.height)
 
       this.canvas.width = this.config.canvas.width;
       this.canvas.height = this.config.canvas.height + (this.config.level.margin * 2) ;
       this.canvas.style.overflow = "hidden";  
   
       this.ctx.beginPath();
-      this.ctx.rect(0,0,this.config.canvas.width,this.config.canvas.height);
-      this.ctx.fillStyle = "whitesmoke";
+      this.ctx.rect(0,0,this.config.canvas.width,this.config.canvas.height + (this.config.level.margin * 2));
+      this.ctx.fillStyle = "white";
       this.ctx.closePath()
       this.ctx.fill()
 
     } // End setupCanvas
 
     setOutput(){
-      this.config.font.y = this.config.network.height + this.config.level.margin + 16;
+      this.config.font.y = this.config.network.height + (2 * this.config.level.margin ) + 16;
 
       Object.keys(this.data.output_class).map((layer,i)=>{
         let text = this.data.output_class[layer] + ' ';
@@ -489,9 +481,9 @@ function App() {
             (j* this.network[layer].config.width) - 
             (this.config.level.height*(level.length-1)) + 
             (this.config.level.height*2*(j))
-          ); // End level.map 
+          ); // End Math.floor
           
-          this.config.layer.y = this.config.level.margin + this.config.network.height;
+          this.config.layer.y =  (2 * this.config.level.margin) + this.config.network.height;
 
           if (i > 0){
             this.config.level.last = this.data.levels[i-1];
@@ -518,7 +510,7 @@ function App() {
 
       this.canvas.onclick = function (e){
         x = e.pageX;
-        y = e.pageY-150;
+        y = e.pageY-config.level.margin;
         depth = 0;
         bredth = 0;
 
@@ -540,13 +532,13 @@ function App() {
             if ( diff < 0 && diff + levelHeight > -1){
               level.map((layer,j)=>{
                 layer = network[layer];
-                bredth = Math.floor(( config.canvas.width / 2 ) -  ( levelWidth / 2 )) + layer.config.margin;
+                bredth = Math.floor(( config.canvas.width / 2 ) -  ( levelWidth / 2 )) + (2 * layer.config.margin);
                 diff = x - bredth;
                 if(diff > -1 && diff < levelWidth - config.layer.padding){
                   i = Math.floor(diff / ( ( 2 * layer.config.radius )+layer.config.margin))
                   xlim = Math.floor( i * ( ( 2 * layer.config.radius )+layer.config.margin)) + (2 * layer.config.radius)
                   if (diff < xlim){
-                    layer.popUp(i,x,y+150);
+                    layer.popUp(i,x,y+config.level.margin);
                   } // End If
                 }// End If
               }) // End level.map
@@ -564,6 +556,7 @@ function App() {
       method:"GET"
     }).then(response=>{
       inputState({
+        ...input,
         examples:response.data.inputs
       })
     })
@@ -590,6 +583,7 @@ function App() {
   React.useEffect(()=>{
     getInputs();
     window.popped = false;
+    window.drop = false;
   },[])
 
   function clearPop(){
@@ -598,25 +592,78 @@ function App() {
       window.popped = false;
     }
   }
+
+  let [input,inputState] = React.useState({
+    examples:[],
+    selected:"Select"
+  })
+  
+  function selectOption(e){
+    dropDown();
+    let [i,..._] = e.target.id.split("_");
+    i = Number(i);
+    inputState({
+      ...input,
+      selected:input.examples[i]
+    })
+    renderGraph(i);
+  }
+
+  function dropDown(e){
+    let dropdown = document.getElementById("items")
+    let l = input.examples.length-1;
+    if (!window.drop){
+      document.getElementById("btn-drop").className = "btn-drop btn-rotated";
+      dropdown.style.height = "85vh";
+      input.examples.map((ex,i)=>{
+        setTimeout(function(){
+          let opt = document.createElement("div")
+          opt.className="option animate select";
+          opt.id = `${i}_opt_${ex}`
+          opt.innerText = ex;
+          opt.onclick = selectOption;
+          dropdown.appendChild(opt);
+        },i*15)
+      })
+    }else{
+      dropdown.style.height = "1vh";
+      document.getElementById("btn-drop").className = "btn-drop";
+      [...input.examples].reverse().map((ex,i)=>{
+        setTimeout(function(){
+          let node = document.getElementById(`${(l-i)}_opt_${ex}`);
+          dropdown.removeChild(node);
+        },i)
+      })
+    }
+    window.drop = ~ window.drop;
+  }
+
+  function download(){
+    let canv = document.getElementById("graph");
+    let a = document.createElement("a");
+    a.href = canv.toDataURL();
+    a.download = "nnviz - " + Date().toString() + '.png';
+    a.click();
+  }
+
   return (
     <div className="root" id="root" onClick={clearPop}>
       <div id="pop" className="pop">
 
       </div>
-      <div style={{height:"150px"}}></div>
-      <select onChange={(e)=>renderGraph(e.target.value)}>
-        <option> Select Example ...</option>
-        {
-          input.examples.map((example,i)=>{
-            return (
-              <option value={i} key={i} >
-                {example}
-              </option>
-            )
-          })
-        }
-      </select>
-      <canvas id="graph" style={{background:"whitesmoke",overflow:"scroll",}} >
+      <span role="img" className="btn-download" onClick={download} > ⏬ </span>
+      <div className="dropdown" id="dropdown">
+        <div className="option selected" onClick={dropDown} > 
+          {input.selected} 
+          <span role="img" id="btn-drop" className="btn-drop" >
+            🔽
+          </span> 
+        </div>
+        <div id="items" className="items">
+
+        </div>
+      </div>
+      <canvas id="graph" style={{background:"white",overflow:"scroll"}} >
       </canvas>
       
     </div>      

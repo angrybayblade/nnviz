@@ -10,8 +10,8 @@ from os import path as pathlib
 
 from utils import *
 
-model_path = pathlib.abspath("./examples/notebooks/saved_model/mnist_dense.json")
-weights_path = pathlib.abspath("./examples/notebooks/saved_model/mnist_dense")
+model_path = pathlib.abspath("./examples/notebooks/saved_model/mnist_skip_conc.json")
+weights_path = pathlib.abspath("./examples/notebooks/saved_model/mnist_skip_conc")
 
 """
 Data Prep
@@ -30,7 +30,7 @@ input_config = {
             },
             "output":str(y[i])
         }
-        for i in np.random.randint(0,len(x),10)
+        for i in np.random.randint(0,len(x),20)
     ],
     "input_layers_config":{
         "input":{
