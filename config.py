@@ -10,8 +10,8 @@ from os import path as pathlib
 
 from utils import *
 
-model_path = pathlib.abspath("./examples/notebooks/saved_model/mnist_skip_conc.json")
-weights_path = pathlib.abspath("./examples/notebooks/saved_model/mnist_skip_conc")
+model_path = pathlib.abspath("./examples/notebooks/saved_model/mnist_skip.json")
+weights_path = pathlib.abspath("./examples/notebooks/saved_model/mnist_skip")
 
 """
 Data Prep

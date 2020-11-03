@@ -74,27 +74,16 @@ body{
     cursor: pointer;
 }
 
-.select::before{
+/* .select::before{
     content: "";
     height: 13px;
     width: 3px;
     position: relative;
     background: #333333;
     top: -35px;
-    left: -50px;
+    left: 80px;
     z-index: 99999;
-}
-
-.select::after{
-    content: "";
-    height: 13px;
-    width: 3px;
-    position: relative;
-    background: #333333;
-    top: 32px;
-    left: 50px;
-    z-index: 99999;
-}
+} */
 
 .animate{
     animation: load_option 200ms;
