@@ -42,9 +42,5 @@ input_config = {
     "input_nodes":['input']
 }
 
-output_config = {
-    "type":"single class",
-}
-
 model = model_from_json(open(model_path,"r").read())
 model.load_weights(weights_path)

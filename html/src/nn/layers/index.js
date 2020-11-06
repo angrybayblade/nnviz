@@ -14,8 +14,8 @@ function extension(args={data:{ class_name: "Dense", inbound: [], outbound: [], 
     let parent = args.data.inbound[0];
     let obj = new layers[args.network[parent].class_name](args={
       data:{
-        ...args.network[parent],
-        outputs:args.data.outputs
+        ...args.data,
+        class_name:args.network[parent].class_name
       },
       ctx:args.ctx,
       name:args.name,

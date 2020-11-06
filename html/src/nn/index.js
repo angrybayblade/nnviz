@@ -16,7 +16,7 @@ class Network {
             canvas: { margin: 30, padding: 192, width: 0, height: 0 },
             level: { height: 0, width: 0, x: 0, y: 0, margin: 96, last: [], depth: 0 },
             neuron: { max: 0, x: 0, y: 0, },
-            layer: { x: 0, y: 0, width: 0, padding: 8 },
+            layer: { x: 0, y: 0, width: 0, padding: 8 ,marginHr:48},
             edges: { to: {}, map: {} },
             font: { x: 0, y: 0 }
         }
@@ -118,12 +118,13 @@ class Network {
     } // End setOutput
 
     render() {
+        let marginHR = this.config.layer.marginHr;
         this.data.levels.map((level, i) => {
             this.config.level.width = level.map((layer, _) => {
-                return this.model[layer].config.width;
+                return this.model[layer].config.width + this.config.layer.marginHr;
             }).reduce(function (a, b) {
                 return a + b;
-            }, 0) // End reduce -> level.map
+            }, 0) - marginHR; // End reduce -> level.map
 
             this.config.level.height = Math.max(...level.map((layer, _) => {
                 return this.model[layer].config.height;
@@ -138,8 +139,8 @@ class Network {
                     
                 ); // End Math.floor
                 if (j > 0){
-                    this.config.layer.x += level.slice(j,level.length).reduce(function (a, b) {
-                        return a + window.network[b].config.width;
+                    this.config.layer.x += level.slice(0,j).reduce(function (a, b) {
+                        return a + window.network[b].config.width + marginHR;
                     }, 0)
                 }
 
