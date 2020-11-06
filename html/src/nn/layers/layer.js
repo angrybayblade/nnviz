@@ -1,10 +1,10 @@
 import { draw } from '../utils';
 
-class Dense {
-    constructor(args={data:{ class_name: "Dense", inbound: [], outbound: [], outputs: [], level: 0 }, ctx :CanvasRenderingContext2D, name:"Dense", network:{}}) {
-        this.data = args.data;
-        this.ctx = args.ctx;
-        this.name = args.name;
+class Layer {
+    constructor(data = { class_name: "Dense", inbound: [], outbound: [], outputs: [], level: 0 }, ctx = CanvasRenderingContext2D, name = "Layer") {
+        this.data = data;
+        this.ctx = ctx;
+        this.name = name;
         this.config = {
             radius: 3,
             margin: 6,
@@ -31,15 +31,18 @@ class Dense {
 
     popUp(i, x, y) {
         window.popped = false;
+
         let canv = document.createElement("div");
         let pop = document.getElementById("pop");
+        
         canv.className = "popup";
         canv.innerText = String(this.data.outputs[i]).slice(0, 8);
+        
         pop.innerHTML = '';
         pop.style.top = `${y}px`
         pop.style.left = `${x}px`
-
         pop.appendChild(canv)
+        
         setTimeout(function () {
             window.popped = true;
         }, 100)
@@ -142,4 +145,4 @@ class Dense {
 }
 
 
-export {Dense};
+export { Layer };

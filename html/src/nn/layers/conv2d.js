@@ -1,11 +1,12 @@
 import { draw } from '../utils';
 
 class Conv2D {
-    constructor(data = { class_name: "Dense", inbound: [], outbound: [], outputs: [], level: 0 }, ctx = CanvasRenderingContext2D, name = 'Conv2D') {
-        this.data = data;
+    constructor(args={data:{ class_name: "Dense", inbound: [], outbound: [], outputs: [], level: 0 }, ctx :CanvasRenderingContext2D, name:"Dense", network:{}}) {
+        this.data = args.data;
+        this.ctx = args.ctx;
+        this.name = args.name;
+
         this.data.output_maps = [...this.data.outputs]
-        this.ctx = ctx;
-        this.name = name;
         this.config = {
             radius: 3,
             margin: 6,
@@ -22,7 +23,7 @@ class Conv2D {
         canv.className = "popup-img";
 
         let img = document.createElement("img");
-        img.src = this.data.output_maps[i];
+        img.src = this.data.output_maps[i][0];
         pop.innerHTML = '';
 
         canv.appendChild(img)
@@ -76,7 +77,7 @@ class Conv2D {
             x: config.neuron.x,
             y: config.neuron.y,
             r: this.config.radius,
-            c: `rgba(0,0,0,0.5)`
+            c: `rgba(0,0,0,${neuron[1]})`
         }, this.ctx)
     } // End renderMap
 

@@ -1,10 +1,11 @@
 import { draw } from '../utils';
 
 class InputLayer {
-    constructor(data = { class_name: "Dense", inbound: [], outbound: [], outputs: [], level: 0 }, ctx = CanvasRenderingContext2D, name = "InputLayer") {
-        this.data = data;
-        this.ctx = ctx;
-        this.name = name;
+    constructor(args={data:{ class_name: "Dense", inbound: [], outbound: [], outputs: [], level: 0 }, ctx :CanvasRenderingContext2D, name:"Dense", network:{},parent:false}) {
+        this.parent = args.parent
+        this.data = args.data;
+        this.ctx = args.ctx;
+        this.name = args.name;
         this.config = {
             margin: 6,
             height: 64,

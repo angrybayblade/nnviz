@@ -1,7 +1,6 @@
 import * as Utils from './utils';
 import { layers } from "./layers";
 
-
 class Network {
     constructor(
         data = { 
@@ -15,7 +14,7 @@ class Network {
         this.config = {
             network: { height: 0},
             canvas: { margin: 30, padding: 192, width: 0, height: 0 },
-            level: { height: 0, width: 0, x: 0, y: 0, margin: 100, last: [], depth: 0 },
+            level: { height: 0, width: 0, x: 0, y: 0, margin: 96, last: [], depth: 0 },
             neuron: { max: 0, x: 0, y: 0, },
             layer: { x: 0, y: 0, width: 0, padding: 8 },
             edges: { to: {}, map: {} },
@@ -27,10 +26,17 @@ class Network {
         this.canvas = canvas;
         this.model = {};
 
-        Object.keys(this.data.network).map((layer, i) => {
-            let _layer = this.data.network[layer];
-            this.model[layer] = new layers[_layer.class_name](data = _layer, ctx = this.ctx, layer);
+        Object.keys(this.data.network).map((name, i) => {
+            let layer = this.data.network[name];
+            let args = {
+                data :layer, 
+                ctx : this.ctx, 
+                name:name, 
+                network:this.data.network
+            }
+            this.model[name] = new layers[layer.class_name](args);
         }, 100)
+        window.network = this.model;
     }
 
     setupCanvas() {
@@ -68,7 +74,6 @@ class Network {
 
     setOutput() {
         this.config.font.y = this.config.network.height + (2 * this.config.level.margin) + 16;
-
         Object.keys(this.data.output_class).map((layer, i) => {
             let text = this.data.output_class[layer] + ' ';
             let textMetrics = this.ctx.measureText(text);
@@ -126,13 +131,17 @@ class Network {
 
             // Iterating layers in current level
             level.map((layer, j) => {
+                console.log(`[Network] Rendering ${layer} at level ${i}`)
                 this.config.layer.x = Math.floor(
                     (this.config.canvas.width / 2) -
-                    (this.config.level.width / 2) +
-                    (j * this.model[layer].config.width) -
-                    (this.config.level.height * (level.length - 1)) +
-                    (this.config.level.height * 2 * (j))
+                    (this.config.level.width / 2) 
+                    
                 ); // End Math.floor
+                if (j > 0){
+                    this.config.layer.x += level.slice(j,level.length).reduce(function (a, b) {
+                        return a + window.network[b].config.width;
+                    }, 0)
+                }
 
                 this.config.layer.y = (2 * this.config.level.margin) + this.config.network.height;
                 this.model[layer].render(this.config, this.data, this.model)
@@ -174,7 +183,5 @@ class Network {
         } // End function (e)
     } // End addHandler
 } // End class Network
-
-
 
 export {Network}

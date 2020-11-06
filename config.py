@@ -10,16 +10,15 @@ from os import path as pathlib
 
 from utils import *
 
-model_path = pathlib.abspath("./examples/notebooks/saved_model/mnist_skip.json")
-weights_path = pathlib.abspath("./examples/notebooks/saved_model/mnist_skip")
+model_path = pathlib.abspath("./examples/notebooks/saved_model/mnist_dense_diff.json")
+weights_path = pathlib.abspath("./examples/notebooks/saved_model/mnist_dense_diff")
 
 """
 Data Prep
 """
 
 (x,y),(_,_) = tf.keras.datasets.mnist.load_data()
-x = x.astype(np.float32).reshape(-1,28*28*1) / 255
-
+x = x.astype(np.float32).reshape(-1,784) 
 
 input_config = {
     "examples":[

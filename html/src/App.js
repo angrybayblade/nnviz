@@ -1,4 +1,4 @@
-import React, { createContext } from 'react';
+import React from 'react';
 import { Network } from './nn';
 
 import axios from 'axios';
@@ -20,6 +20,7 @@ function App() {
   } // End getInputs
 
   async function renderGraph(example) {
+    console.log(`Started fetching data at : ${Date().toString()}`)
     await axios({
       method: "GET",
       url: `http://localhost:8081/predict/${example}`,
