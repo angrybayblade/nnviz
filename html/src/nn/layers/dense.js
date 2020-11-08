@@ -97,6 +97,7 @@ class Dense {
                             t:0.1
                         },this.ctx)
                     }
+                    return undefined
                 })
             } // End if -> render if level difference is less then 2 -> not skip connection
             else {
@@ -112,8 +113,10 @@ class Dense {
                             c: `rgba(0,0,0,0.7)`
                         }, this.ctx)
                     }
+                    return undefined
                 })
             }
+            return undefined
         })
     } // End renderEdges
 
@@ -137,6 +140,7 @@ class Dense {
         this.data.outputs.map((neuron, k) => {
             this.renderNeuron(config, neuron, k);
             this.renderEdges(config, data, network);
+            return undefined
         })
     } // End render
 }

@@ -3,3 +3,4 @@ examples/saved_models/*
 *__pycache__
 temp/
 config.py
+examples/datasets/*

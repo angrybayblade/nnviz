@@ -35,6 +35,7 @@ class Network {
                 network:this.data.network
             }
             this.model[name] = new layers[layer.class_name](args);
+            return undefined
         }, 100)
         window.network = this.model;
     }
@@ -113,7 +114,9 @@ class Network {
                         c: `rgba(0,0,0,${neuron})`
                     }, this.ctx)
                 }
+                return undefined
             }) // End this.data.network[layer].outputs.map
+            return undefined
         }) // Object.keys(this.data.output_class).map
     } // End setOutput
 
@@ -146,11 +149,13 @@ class Network {
 
                 this.config.layer.y = (2 * this.config.level.margin) + this.config.network.height;
                 this.model[layer].render(this.config, this.data, this.model)
+                return undefined
             })
             this.config.network.height += (
                 this.config.level.height +
                 this.config.level.margin
             )
+            return undefined
         }) // End this.data.levels.map
         this.setOutput();
     } // End Render
@@ -163,8 +168,7 @@ class Network {
             let x = e.pageX;
             let y = e.pageY - window.config.level.margin;
             let layer;
-            let i;
-
+            
             [...Object.keys(window.model)].map((_layer,i)=>{
                 layer = window.model[_layer];
                 if (x >= layer.config.xmin && x <= layer.config.xmax &&

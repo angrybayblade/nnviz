@@ -97,7 +97,9 @@ class Conv2D {
                         c: `rgba(0,0,0,0.15)`
                     }, this.ctx)
                 }
+                return undefined
             })
+            return undefined
         })
     } // End renderEdges
 
@@ -121,6 +123,7 @@ class Conv2D {
         this.data.outputs.map((neuron, k) => {
             this.renderMap(config, neuron, k);
             this.renderEdges(config, data, network);
+            return undefined
         })
     } // End render
 } // End Conv2D

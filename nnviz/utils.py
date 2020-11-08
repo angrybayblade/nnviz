@@ -1,13 +1,11 @@
-from json import loads,dumps
-
 import numpy as np
 import cv2
 import base64
 import matplotlib.pyplot as plt
-import config as cfg
 
 import tensorflow as tf
 
+from json import loads,dumps
 from tensorflow.keras.layers import *
 
 def set_levels(network,input_nodes,level):
@@ -54,7 +52,6 @@ def get_conf(model:tf.keras.models.Model,input_config:dict):
                 j -= 1
                 
     return network,levels
-
 
 def image2base64(image:np.ndarray)->str:
     image = image.astype(np.uint8) if image.max() > 1 else (image * 255).astype(np.uint8)
@@ -194,7 +191,7 @@ prep_functions = {
     "ZeroPadding2D":prep_ext_layer
 }
 
-def set_output(model,network:dict,levels:list,input_values:dict,input_config:dict):
+def set_output(model,network:dict,levels:list,input_values:dict,render_config:dict):
     temp_out = dict()
     inputs = None
     layer = None
@@ -214,7 +211,6 @@ def set_output(model,network:dict,levels:list,input_values:dict,input_config:dic
                     
                 out = layer_instance(inputs)
                 temp_out[layer] = out
-                
                 network[layer]['outputs'] = get_outputs(
                     tensor=out,
                     layer={
@@ -222,23 +218,23 @@ def set_output(model,network:dict,levels:list,input_values:dict,input_config:dic
                         "config":layer_config,
                         "instance":layer_instance
                     },
-                    input_config=input_config,
+                    input_config=render_config,
                     network=network,
                     model=model
                 )
             else:
-                inputs = input_values[layer]
-                out = layer_instance(inputs['value'].astype(np.float32))
+                inputs = input_values['inputs'][layer]
+                out = layer_instance(inputs)
                 temp_out[layer] = out
-                
-                network[layer]['outputs'] = prep_functions[layer_config['class_name']](
+                func = prep_functions[layer_config['class_name']]
+                network[layer]['outputs'] = func(
                     value=out,
                     layer ={
                         "name":layer,
                         "config":layer_config,
                         "instance":layer_instance
                     },
-                    input_config = input_config,
+                    input_config = render_config,
                     network=network,
                     model=model
                 )
