@@ -62,3 +62,21 @@ model.load_weights(weights_path)
 
 \* API is not fully functioning yet.
 
+### To Do
+
+1. ` Add different input types`
+2. ` Create a service sidebar`
+3. ` Customizable Network UI`
+
+
+### Input Templates / Types
+
+`1. Image` 
+
+    Input   : Image with shape ( h,w,c ) for RGB images, (h,w) for greyscale images.
+    Renders : 128x128 Image 
+
+`2. Row`
+
+    Input   : A list of tuples containing column name and column value.
+    Renders : A table

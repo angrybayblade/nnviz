@@ -123,6 +123,7 @@ function App() {
 
         </div>
       </div>
+      
       <canvas id="graph" style={{ background: "white", overflow: "scroll" }} >
       </canvas>
 
