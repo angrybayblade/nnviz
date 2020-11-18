@@ -3,20 +3,22 @@ import { layers } from "./layers";
 
 class Network {
     constructor(
-        data = { 
-            network: {}, 
-            levels: [], 
-            output_class: [], 
-            input: [] 
-        }, ctx = CanvasRenderingContext2D, canvas = undefined
+        data = {
+            network: {},
+            levels: [],
+            output_class: [],
+            input: []
+        },
+        ctx = CanvasRenderingContext2D,
+        canvas = undefined
     ) {
-        
+
         this.config = {
-            network: { height: 0},
+            network: { height: 0 },
             canvas: { margin: 30, padding: 192, width: 0, height: 0 },
             level: { height: 0, width: 0, x: 0, y: 0, margin: 96, last: [], depth: 0 },
             neuron: { max: 0, x: 0, y: 0, },
-            layer: { x: 0, y: 0, width: 0, padding: 8 ,marginHr:48},
+            layer: { x: 0, y: 0, width: 0, padding: 8, marginHr: 48 },
             edges: { to: {}, map: {} },
             font: { x: 0, y: 0 }
         }
@@ -29,10 +31,10 @@ class Network {
         Object.keys(this.data.network).map((name, i) => {
             let layer = this.data.network[name];
             let args = {
-                data :layer, 
-                ctx : this.ctx, 
-                name:name, 
-                network:this.data.network
+                data: layer,
+                ctx: this.ctx,
+                name: name,
+                network: this.data.network
             }
             this.model[name] = new layers[layer.class_name](args);
             return undefined
@@ -75,14 +77,14 @@ class Network {
 
     setOutput() {
         this.config.font.y = this.config.network.height + (2 * this.config.level.margin) + 16;
-        Object.keys(this.data.output_class).map((layer, i) => {
+        Object.keys(this.data.output_class).forEach((layer, i) => {
             let text = this.data.output_class[layer] + ' ';
             let textMetrics = this.ctx.measureText(text);
             let fontSize = 30;
             let fontWidth = Math.floor(textMetrics.width * (fontSize / 9));
 
             this.config.font.x = Math.floor(
-                (this.config.canvas.width / 2) - 
+                (this.config.canvas.width / 2) -
                 (fontWidth / 2.25)
             ); // End Math.floor
 
@@ -102,7 +104,7 @@ class Network {
                 h: fontSize + 6
             }, this.ctx)
 
-            this.data.network[layer].outputs.map((neuron, l) => {
+            this.data.network[layer].outputs.forEach((neuron, l) => {
                 this.config.edges.to = this.config.edges.map[`${layer}_${l}`];
                 if (neuron > 0.9) {
                     Utils.draw.Line({
@@ -114,15 +116,14 @@ class Network {
                         c: `rgba(0,0,0,${neuron})`
                     }, this.ctx)
                 }
-                return undefined
-            }) // End this.data.network[layer].outputs.map
-            return undefined
-        }) // Object.keys(this.data.output_class).map
+            }) // End this.data.network[layer].outputs.forEach
+        }) // Object.keys(this.data.output_class).forEach
     } // End setOutput
 
     render() {
         let marginHR = this.config.layer.marginHr;
-        this.data.levels.map((level, i) => {
+
+        this.data.levels.forEach((level, i) => {
             this.config.level.width = level.map((layer, _) => {
                 return this.model[layer].config.width + this.config.layer.marginHr;
             }).reduce(function (a, b) {
@@ -134,28 +135,26 @@ class Network {
             }))
 
             // Iterating layers in current level
-            level.map((layer, j) => {
+            level.forEach((layer, j) => {
                 console.log(`[Network] Rendering ${layer} at level ${i}`)
                 this.config.layer.x = Math.floor(
                     (this.config.canvas.width / 2) -
-                    (this.config.level.width / 2) 
-                    
+                    (this.config.level.width / 2)
+
                 ); // End Math.floor
-                if (j > 0){
-                    this.config.layer.x += level.slice(0,j).reduce(function (a, b) {
+                if (j > 0) {
+                    this.config.layer.x += level.slice(0, j).reduce(function (a, b) {
                         return a + window.network[b].config.width + marginHR;
                     }, 0)
                 }
 
                 this.config.layer.y = (2 * this.config.level.margin) + this.config.network.height;
                 this.model[layer].render(this.config, this.data, this.model)
-                return undefined
             })
             this.config.network.height += (
                 this.config.level.height +
                 this.config.level.margin
             )
-            return undefined
         }) // End this.data.levels.map
         this.setOutput();
     } // End Render
@@ -168,25 +167,23 @@ class Network {
             let x = e.pageX;
             let y = e.pageY - window.config.level.margin;
             let layer;
-            
-            [...Object.keys(window.model)].map((_layer,i)=>{
+
+            [...Object.keys(window.model)].map((_layer, i) => {
                 layer = window.model[_layer];
                 if (x >= layer.config.xmin && x <= layer.config.xmax &&
-                    y >= layer.config.ymin && y <= layer.config.ymax){
-                    i = Math.floor((x - layer.config.xmin)/layer.config.dx) - 1;
-                    if ( i > -1){
+                    y >= layer.config.ymin && y <= layer.config.ymax) {
+                    i = Math.floor((x - layer.config.xmin) / layer.config.dx) - 1;
+                    if (i > -1) {
                         layer.popUp(
                             i,
                             x,
-                            y+window.config.level.margin
+                            y + window.config.level.margin
                         )
-                    }
-                    // finish popup
+                    }// finish popup
                 }
             })
-
         } // End function (e)
     } // End addHandler
 } // End class Network
 
-export {Network}
+export { Network }

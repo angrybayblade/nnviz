@@ -47,6 +47,10 @@ class InputLayer {
         }
     } // End prepFunction_image
 
+   prepFunction_row(){
+
+   }
+    
     render(config, data) {
         this['prepFunction_' + data.input_config[this.name].type](config, data);
     } // End render

@@ -1,4 +1,4 @@
-![](doc/banner.png)
+![](doc/images/banner.png)
 
 
 ### How to use

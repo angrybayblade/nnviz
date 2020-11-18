@@ -14,9 +14,7 @@ import config as cfg
 app = Flask(__name__)
 CORS(app=app)
 
-
 NETWORK, LEVELS = cfg.get_conf(cfg.model, cfg.input_config)
-
 
 @app.route("/")
 def index():
