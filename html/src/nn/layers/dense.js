@@ -120,27 +120,26 @@ class Dense {
         })
     } // End renderEdges
 
-    render(config, data, network) {
-        this.config.xmin = config.layer.x;
-        this.config.ymin = config.layer.y - config.level.margin;
+    render( netConfig, data, network) {
+        this.config.xmin = netConfig.layer.x;
+        this.config.ymin = netConfig.layer.y - netConfig.level.margin;
         
         this.config.xmax = Math.floor(this.config.xmin + this.config.width);
-        this.config.ymax = Math.floor(this.config.ymin + config.level.height);
+        this.config.ymax = Math.floor(this.config.ymin + netConfig.level.height);
 
         this.config.dx = (2*this.config.radius) + this.config.margin;
         
         draw.Rect({
-            x: config.layer.x,
-            y: config.layer.y,
-            h: config.level.height,
+            x: netConfig.layer.x,
+            y: netConfig.layer.y,
+            h: netConfig.level.height,
             w: this.config.width
         }, this.ctx)
 
         // Rendering Neurons
-        this.data.outputs.map((neuron, k) => {
-            this.renderNeuron(config, neuron, k);
-            this.renderEdges(config, data, network);
-            return undefined
+        this.data.outputs.forEach((neuron, k) => {
+            this.renderNeuron(netConfig, neuron, k);
+            this.renderEdges(netConfig, data, network);
         })
     } // End render
 }

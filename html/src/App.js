@@ -1,5 +1,6 @@
 import React from 'react';
 import { Network } from './nn';
+import * as Data from './nn/data'
 
 import axios from 'axios';
 import "./App.css"
@@ -39,12 +40,6 @@ function App() {
       console.log(`Rendering ended at : ${Date().toString()}`)
     })
   } // End renderGraph
-
-  React.useEffect(() => {
-    getInputs();
-    window.popped = false;
-    window.drop = false;
-  }, [])
 
   function clearPop() {
     if (window.popped) {
@@ -105,6 +100,27 @@ function App() {
     a.download = "nnviz - " + Date().toString() + '.png';
     a.click();
   }
+
+  React.useEffect(() => {
+    // getInputs();
+    // window.popped = false;
+    // window.drop = false;
+
+    let canvas = document.getElementById("graph");
+    let ctx = canvas.getContext('2d');
+
+    console.log(`Rendering started at : ${Date().toString()}`)
+
+    let net = new Network(Data.rowed_dense, ctx, canvas)
+    net.setupCanvas();
+    net.render();
+    net.addHandler();
+    window.network = net;
+
+    console.log(`Rendering ended at : ${Date().toString()}`)
+
+  }, [])
+
 
   return (
     <div className="root" id="root" onClick={clearPop}>

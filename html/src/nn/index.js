@@ -6,7 +6,7 @@ class Network {
         data = {
             network: {},
             levels: [],
-            output_class: [],
+            output: [],
             input: []
         },
         ctx = CanvasRenderingContext2D,
@@ -28,7 +28,7 @@ class Network {
         this.canvas = canvas;
         this.model = {};
 
-        Object.keys(this.data.network).map((name, i) => {
+        Object.keys(this.data.network).forEach((name, i) => {
             let layer = this.data.network[name];
             let args = {
                 data: layer,
@@ -77,8 +77,8 @@ class Network {
 
     setOutput() {
         this.config.font.y = this.config.network.height + (2 * this.config.level.margin) + 16;
-        Object.keys(this.data.output_class).forEach((layer, i) => {
-            let text = this.data.output_class[layer] + ' ';
+        Object.keys(this.data.output).forEach((layer, i) => {
+            let text = this.data.output[layer] + ' ';
             let textMetrics = this.ctx.measureText(text);
             let fontSize = 30;
             let fontWidth = Math.floor(textMetrics.width * (fontSize / 9));
@@ -122,7 +122,6 @@ class Network {
 
     render() {
         let marginHR = this.config.layer.marginHr;
-
         this.data.levels.forEach((level, i) => {
             this.config.level.width = level.map((layer, _) => {
                 return this.model[layer].config.width + this.config.layer.marginHr;
