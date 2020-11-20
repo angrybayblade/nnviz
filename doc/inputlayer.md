@@ -1,4 +1,4 @@
-### ```class InputLayer```
+### ```function InputLayer```
 `tensorflow.keras.layers.InputLayer` / `tensorflow.keras.layers.Input`
 
 `args`:
@@ -16,24 +16,7 @@
     network:{} // Network config
 }
 ```
-
-`methods` 
-
-1. calculateWidth -> int : calculates, stores and returns width using config.  
-2. calculateHeight -> int : calculates, stores and returns height using config.  
-3. prepFunction_image -> : render function for type=image.
-4. prepFunction_row -> : render function for type=row.
-5. render -> undefined : renders layer on canvas.
-
-`config`
-
-```js
-{
-    
-}
-```
-
-`examples`
+`types`
 
 1. Image 
 2. Row ( with columns )
@@ -41,3 +24,23 @@
 4. Time Series ( With columns )
 5. Time Series ( Without columns )
 6. Word Tokens
+   
+
+### class Row
+
+`config`
+
+```js
+{
+    height:0,
+    width:0,
+    cell:{
+        height:0,
+        width:0
+    },
+    xmin:0,
+    ymin:0,
+    xmax:0,
+    ymax:0
+}
+```

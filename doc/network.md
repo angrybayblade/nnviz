@@ -54,10 +54,10 @@ class Network{
 ```js
 {
     network: { height: 0, width:0 },
-    canvas: { margin: 30, padding: 192, width: 0, height: 0 },
-    level: { height: 0, width: 0, x: 0, y: 0, margin: 96, last: [], depth: 0 },
+    canvas: { padding: 192, width: 0, height: 0 },
+    level: { height: 0, width: 0, x: 0, y: 0, gap: 96 },
     neuron: { max: 0, x: 0, y: 0, },
-    layer: { x: 0, y: 0, width: 0, padding: 8, marginHr: 48 },
+    layer: { x: 0, y: 0, width: 0, padding: 8},
     edges: { to: {}, map: {} },
     font: { x: 0, y: 0 }
 }
